@@ -163,10 +163,10 @@ export default function Boleta() {
                       {item.quantity}
                     </td>
                     <td className="text-right py-3 px-4 text-gray-700">
-                      ${item.product_price.toLocaleString()}
+                      S/ {item.product_price.toLocaleString()}
                     </td>
                     <td className="text-right py-3 px-4 font-semibold text-gray-800">
-                      ${item.subtotal.toLocaleString()}
+                      S/ {item.subtotal.toLocaleString()}
                     </td>
                   </tr>
                 ))}
@@ -181,15 +181,15 @@ export default function Boleta() {
             <div className="w-64 space-y-2">
               <div className="flex justify-between text-gray-700">
                 <span>Subtotal:</span>
-                <span>${order.subtotal.toLocaleString()}</span>
+                <span>S/ {order.subtotal.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-700">
                 <span>Envío:</span>
-                <span>${order.shipping_cost.toLocaleString()}</span>
+                <span>S/ {order.shipping_cost.toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-xl font-bold text-gray-800 pt-2 border-t border-gray-300">
                 <span>Total:</span>
-                <span className="text-blue-600">${order.total.toLocaleString()}</span>
+                <span className="text-blue-600">S/ {order.total.toLocaleString()}</span>
               </div>
               <div className="flex justify-between items-center pt-2">
                 <span className="text-sm text-gray-600">Estado del pago:</span>

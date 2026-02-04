@@ -221,7 +221,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-gray-500">{product.category}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-blue-600">${product.price?.toLocaleString()}</p>
+                    <p className="font-bold text-blue-600">S/ {product.price?.toLocaleString()}</p>
                     <p className="text-sm text-gray-500">Stock: {product.stock || 0}</p>
                   </div>
                 </div>

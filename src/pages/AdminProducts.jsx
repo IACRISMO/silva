@@ -296,7 +296,7 @@ export default function AdminProducts() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Precio (CLP) *</label>
+                  <label className="block text-sm font-medium mb-2">Precio (S/) *</label>
                   <input
                     type="number"
                     required
@@ -450,7 +450,7 @@ export default function AdminProducts() {
                         </span>
                       </td>
                       <td className="py-4 px-4 font-bold text-blue-600">
-                        ${product.price?.toLocaleString()}
+                        S/ {product.price?.toLocaleString()}
                       </td>
                       <td className="py-4 px-4">
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${

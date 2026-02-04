@@ -305,7 +305,7 @@ export default function Checkout() {
                     {item.name} x{item.quantity}
                   </span>
                   <span className="text-gray-800">
-                    ${(item.price * item.quantity).toLocaleString()}
+                    S/ {(item.price * item.quantity).toLocaleString()}
                   </span>
                 </div>
               ))}
@@ -313,7 +313,7 @@ export default function Checkout() {
             <div className="border-t pt-3 space-y-2">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>
-                <span>${getTotal().toLocaleString()}</span>
+                <span>S/ {getTotal().toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Envío:</span>
@@ -321,7 +321,7 @@ export default function Checkout() {
               </div>
               <div className="border-t pt-2 flex justify-between text-xl font-bold text-gray-800">
                 <span>Total:</span>
-                <span>${getTotal().toLocaleString()}</span>
+                <span>S/ {getTotal().toLocaleString()}</span>
               </div>
             </div>
           </div>

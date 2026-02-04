@@ -38,7 +38,7 @@ export default function ProductCard({ product }) {
         </p>
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold text-blue-600">
-            ${product.price.toLocaleString()}
+            S/ {product.price.toLocaleString()}
           </span>
           <button
             onClick={handleAddToCart}

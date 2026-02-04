@@ -96,7 +96,7 @@ export default function MisPedidos() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-lg font-bold text-blue-600">
-                  ${order.total?.toLocaleString()}
+                  S/ {order.total?.toLocaleString()}
                 </span>
                 <Link
                   to={`/boleta/${order.id}`}

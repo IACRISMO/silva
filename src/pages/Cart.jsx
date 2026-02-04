@@ -84,7 +84,7 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-bold text-blue-600">
-                      ${(item.price * item.quantity).toLocaleString()}
+                      S/ {(item.price * item.quantity).toLocaleString()}
                     </p>
                     <button
                       onClick={() => removeFromCart(item.id)}
@@ -107,7 +107,7 @@ export default function Cart() {
             <div className="space-y-2 mb-4">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal:</span>
-                <span>${getTotal().toLocaleString()}</span>
+                <span>S/ {getTotal().toLocaleString()}</span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Envío:</span>
@@ -115,7 +115,7 @@ export default function Cart() {
               </div>
               <div className="border-t pt-2 flex justify-between text-xl font-bold text-gray-800">
                 <span>Total:</span>
-                <span>${getTotal().toLocaleString()}</span>
+                <span>S/ {getTotal().toLocaleString()}</span>
               </div>
             </div>
             <button

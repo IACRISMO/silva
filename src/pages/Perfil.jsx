@@ -76,7 +76,7 @@ export default function Perfil() {
                 <div>
                   <p className="font-medium text-gray-800">{order.boleta_number}</p>
                   <p className="text-sm text-gray-500">
-                    {new Date(order.created_at).toLocaleDateString('es-PE')} · ${order.total?.toLocaleString()}
+                    {new Date(order.created_at).toLocaleDateString('es-PE')} · S/ {order.total?.toLocaleString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

@@ -180,7 +180,7 @@ export default function AdminOrders() {
                       {order.order_items?.map((item) => (
                         <div key={item.id} className="flex justify-between text-sm">
                           <span>{item.product_name} x{item.quantity}</span>
-                          <span className="font-medium">${item.subtotal?.toLocaleString()}</span>
+                          <span className="font-medium">S/ {item.subtotal?.toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
@@ -190,7 +190,7 @@ export default function AdminOrders() {
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-lg font-bold text-blue-600">
-                          Total: ${order.total?.toLocaleString()}
+                          Total: S/ {order.total?.toLocaleString()}
                         </p>
                       </div>
                       <div className="flex gap-2">
