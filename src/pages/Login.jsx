@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -12,8 +12,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [needsConfirmation, setNeedsConfirmation] = useState(false)
   const [resendingEmail, setResendingEmail] = useState(false)
-  const { login, signup, resendConfirmationEmail } = useAuth()
+  const { user, login, signup, resendConfirmationEmail } = useAuth()
   const navigate = useNavigate()
+
+  // Si ya está logueado, redirigir a la página principal
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true })
+    }
+  }, [user, navigate])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -101,13 +108,8 @@ export default function Login() {
     setLoading(false)
 
     if (result.success) {
-      alert('¡Cuenta creada exitosamente! Ya puedes iniciar sesión.')
-      setIsLogin(true)
-      setPassword('')
-      setConfirmPassword('')
-      setEmail('')
-      setName('')
-      setError('')
+      // Redirigir a inicio (si la confirmación está desactivada ya queda logueado)
+      navigate('/', { replace: true })
     } else {
       // El mensaje de error ya viene mejorado del contexto
       const errorMessage = result.error || 'Error al crear la cuenta. Por favor intenta de nuevo.'

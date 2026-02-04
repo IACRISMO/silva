@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -9,8 +9,15 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signup } = useAuth()
+  const { user, signup } = useAuth()
   const navigate = useNavigate()
+
+  // Si ya está logueado, redirigir a la página principal
+  useEffect(() => {
+    if (user) {
+      navigate('/', { replace: true })
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -31,8 +38,8 @@ export default function Register() {
     setLoading(false)
 
     if (result.success) {
-      alert('¡Cuenta creada exitosamente! Por favor verifica tu email.')
-      navigate('/login')
+      // Redirigir a inicio (no mostrar página de login)
+      navigate('/', { replace: true })
     } else {
       setError(result.error || 'Error al crear la cuenta')
     }
