@@ -43,6 +43,7 @@ export default function Header() {
           <Link to="/" className="text-2xl font-bold text-blue-600">
             🏍️ JASICA
           </Link>
+          {/* Tienda JASICA - Cascos de motos */}
           
           <div className="flex items-center gap-4">
             <Link
