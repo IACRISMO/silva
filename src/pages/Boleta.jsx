@@ -210,6 +210,12 @@ export default function Boleta() {
                     : 'Enviaste el comprobante Yape. El administrador verificará el pago.'}
                 </p>
               )}
+              {order.payment_method?.customer_message && (
+                <div className="pt-2 mt-2 border-t border-gray-200 text-right">
+                  <p className="text-xs text-gray-500">Mensaje del cliente:</p>
+                  <p className="text-sm text-gray-700 font-medium">{order.payment_method.customer_message}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

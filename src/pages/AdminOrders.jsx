@@ -146,6 +146,12 @@ export default function AdminOrders() {
                     </div>
                   </div>
 
+                  {order.payment_method?.customer_message && (
+                    <div className="border-t pt-4 mb-2">
+                      <p className="text-sm text-gray-600 mb-1">Mensaje del cliente:</p>
+                      <p className="text-sm font-medium text-gray-800 bg-gray-50 px-3 py-2 rounded-lg">{order.payment_method.customer_message}</p>
+                    </div>
+                  )}
                   {order.payment_proof_url && (
                     <div className="border-t pt-4 mb-4">
                       <p className="text-sm text-gray-600 mb-2">Comprobante Yape (captura):</p>

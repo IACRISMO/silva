@@ -18,6 +18,7 @@ export default function Checkout() {
     city: '',
     zipCode: ''
   })
+  const [clientMessage, setClientMessage] = useState('')
   const [paymentProofFile, setPaymentProofFile] = useState(null)
   const [paymentProofPreview, setPaymentProofPreview] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -95,7 +96,10 @@ export default function Checkout() {
           city: formData.city,
           zipCode: formData.zipCode
         },
-        paymentMethod: { type: 'yape' },
+        paymentMethod: {
+          type: 'yape',
+          customer_message: clientMessage.trim() || null
+        },
         paymentProofUrl: publicUrl
       }
 
@@ -249,15 +253,47 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* Pago con Yape - Captura del comprobante */}
+            {/* Pago con Yape - QR + Captura del comprobante */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
                 Pago con Yape
               </h2>
-              <p className="text-gray-600 mb-4">
-                Realiza el pago por Yape por el monto total del pedido. Luego sube aquí la <strong>captura de pantalla del comprobante</strong> (la imagen que te muestra Yape después de pagar). El administrador verificará el pago y tu pedido quedará confirmado.
-              </p>
-              <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-6 mb-6">
+                <div className="flex-1">
+                  <p className="text-gray-600">
+                    Escanea el código QR con la app Yape y paga el monto total de tu pedido. Después sube aquí la <strong>captura de pantalla del comprobante</strong> (la imagen que te muestra Yape al terminar el pago). El administrador verificará el pago y tu pedido quedará confirmado.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 flex flex-col items-center">
+                  <img
+                    src="/yape-qr.png"
+                    alt="QR Yape - Escanea para pagar"
+                    className="w-44 h-44 object-contain rounded-lg border border-gray-200"
+                  />
+                  <p className="mt-3 text-center text-sm font-medium text-gray-700">
+                    Pago para Silva (cascos y accesorios)
+                  </p>
+                  <p className="mt-1 text-center text-xs text-gray-500">
+                    Envía la captura del pago abajo
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-4 border-t border-gray-200 pt-4">
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Mensaje del cliente (opcional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Pago de casco modelo X, pedido Silva..."
+                    value={clientMessage}
+                    onChange={(e) => setClientMessage(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Escribe un mensaje para identificar tu pago (aparecerá en tu boleta y el administrador lo verá).
+                  </p>
+                </div>
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
                     Captura del comprobante Yape (obligatorio)
