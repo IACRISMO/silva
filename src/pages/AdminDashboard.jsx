@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import AdminLayout from '../components/AdminLayout'
 import { getProducts } from '../services/productsService'
@@ -12,58 +12,50 @@ export default function AdminDashboard() {
     totalUsers: 0,
     lowStock: 0
   })
-  const [loading, setLoading] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(false)
+  const [loadingProducts, setLoadingProducts] = useState(false)
   const [recentProducts, setRecentProducts] = useState([])
+  const mountedRef = useRef(true)
 
-  const loadDashboardData = useCallback(async () => {
-    setLoading(true)
-    try {
-      // Cargar productos
-      const { data: products } = await getProducts()
-      const totalProducts = products?.length || 0
-      const lowStock = products?.filter(p => p.stock < 5).length || 0
-      setRecentProducts(products?.slice(0, 5) || [])
-
-      // Cargar órdenes
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('id')
-      const totalOrders = orders?.length || 0
-
-      // Cargar usuarios
-      const { data: users } = await supabase
-        .from('user_profiles')
-        .select('id')
-      const totalUsers = users?.length || 0
-
-      setStats({
-        totalProducts,
-        totalOrders,
-        totalUsers,
-        lowStock
-      })
-    } catch (error) {
-      console.error('Error cargando dashboard:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Recargar datos al entrar a /admin (incluye volver desde la tienda)
+  // Solo cargar cuando estamos en /admin exacto (no al cambiar a productos/ordenes)
   useEffect(() => {
-    loadDashboardData()
-  }, [location.pathname, loadDashboardData])
+    if (location.pathname !== '/admin') return
+    mountedRef.current = true
+    setLoadingStats(true)
+    setLoadingProducts(true)
 
-  // Recargar datos cuando vuelves a la pestaña del admin
-  useEffect(() => {
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && location.pathname === '/admin') {
-        loadDashboardData()
+    // Cargar todo en paralelo para no bloquear la UI
+    const load = async () => {
+      try {
+        const [productsRes, ordersRes, usersRes] = await Promise.all([
+          getProducts(),
+          supabase.from('orders').select('id'),
+          supabase.from('user_profiles').select('id')
+        ])
+        if (!mountedRef.current) return
+
+        const products = productsRes?.data ?? []
+        const totalProducts = products.length
+        const lowStock = products.filter(p => (p.stock ?? 0) < 5).length
+        setStats({
+          totalProducts,
+          totalOrders: ordersRes?.data?.length ?? 0,
+          totalUsers: usersRes?.data?.length ?? 0,
+          lowStock
+        })
+        setRecentProducts(Array.isArray(products) ? products.slice(0, 5) : [])
+      } catch (error) {
+        console.error('Error cargando dashboard:', error)
+      } finally {
+        if (mountedRef.current) {
+          setLoadingStats(false)
+          setLoadingProducts(false)
+        }
       }
     }
-    document.addEventListener('visibilitychange', handleVisibility)
-    return () => document.removeEventListener('visibilitychange', handleVisibility)
-  }, [location.pathname, loadDashboardData])
+    load()
+    return () => { mountedRef.current = false }
+  }, [location.pathname])
 
   return (
     <AdminLayout>
@@ -81,7 +73,7 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-gray-500 text-sm font-medium">Total Productos</p>
                 <p className="text-3xl font-bold text-gray-800 mt-2">
-                  {loading ? '...' : stats.totalProducts}
+                  {loadingStats ? '...' : stats.totalProducts}
                 </p>
               </div>
               <div className="bg-blue-100 p-3 rounded-full">
@@ -101,7 +93,7 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-gray-500 text-sm font-medium">Total Órdenes</p>
                 <p className="text-3xl font-bold text-gray-800 mt-2">
-                  {loading ? '...' : stats.totalOrders}
+                  {loadingStats ? '...' : stats.totalOrders}
                 </p>
               </div>
               <div className="bg-green-100 p-3 rounded-full">
@@ -121,7 +113,7 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-gray-500 text-sm font-medium">Total Clientes</p>
                 <p className="text-3xl font-bold text-gray-800 mt-2">
-                  {loading ? '...' : stats.totalUsers}
+                  {loadingStats ? '...' : stats.totalUsers}
                 </p>
               </div>
               <div className="bg-purple-100 p-3 rounded-full">
@@ -141,7 +133,7 @@ export default function AdminDashboard() {
               <div>
                 <p className="text-gray-500 text-sm font-medium">Stock Bajo</p>
                 <p className="text-3xl font-bold text-gray-800 mt-2">
-                  {loading ? '...' : stats.lowStock}
+                  {loadingStats ? '...' : stats.lowStock}
                 </p>
               </div>
               <div className="bg-red-100 p-3 rounded-full">
@@ -208,7 +200,7 @@ export default function AdminDashboard() {
             </Link>
           </div>
           
-          {loading ? (
+          {loadingProducts ? (
             <p className="text-gray-500">Cargando...</p>
           ) : recentProducts.length === 0 ? (
             <p className="text-gray-500">No hay productos</p>

@@ -25,7 +25,7 @@ export async function createOrder(orderData) {
       shipping_address: orderData.shippingAddress,
       payment_method: orderData.paymentMethod,
       payment_proof_url: orderData.paymentProofUrl || null,
-      payment_status,
+      payment_status: paymentStatus,
       order_status: 'processing',
       created_at: new Date().toISOString()
     }

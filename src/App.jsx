@@ -9,6 +9,8 @@ import Register from './pages/Register'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Boleta from './pages/Boleta'
+import Perfil from './pages/Perfil'
+import MisPedidos from './pages/MisPedidos'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminProducts from './pages/AdminProducts'
 import AdminOrders from './pages/AdminOrders'
@@ -59,8 +61,19 @@ function App() {
             } />
             <Route path="/boleta/:orderId" element={
               <div className="min-h-screen bg-gray-50">
-                <Header />
                 <Boleta />
+              </div>
+            } />
+            <Route path="/perfil" element={
+              <div className="min-h-screen bg-gray-50">
+                <Header />
+                <Perfil />
+              </div>
+            } />
+            <Route path="/pedidos" element={
+              <div className="min-h-screen bg-gray-50">
+                <Header />
+                <MisPedidos />
               </div>
             } />
 

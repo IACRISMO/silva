@@ -40,7 +40,7 @@ export default function AdminOrders() {
     }
   }
 
-  const confirmPayment = async (orderId) => {
+  const confirmPayment = async (order) => {
     try {
       const { error } = await supabase
         .from('orders')
@@ -49,7 +49,7 @@ export default function AdminOrders() {
           order_status: 'confirmed',
           updated_at: new Date().toISOString()
         })
-        .eq('id', orderId)
+        .eq('id', order.id)
 
       if (error) throw error
       loadOrders()
@@ -165,7 +165,7 @@ export default function AdminOrders() {
                       {order.payment_status === 'pending_verification' && (
                         <button
                           type="button"
-                          onClick={() => confirmPayment(order.id)}
+                          onClick={() => confirmPayment(order)}
                           className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
                         >
                           Confirmar pago (marcar como pagado)

@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import NotificationBell from './NotificationBell'
 
 export default function AdminLayout({ children }) {
-  const { user, logout, isAdmin, loading: authLoading } = useAuth()
+  const { user, userProfile, logout, isAdmin, loading: authLoading } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -12,26 +13,52 @@ export default function AdminLayout({ children }) {
     navigate('/')
   }
 
-  // Redirigir a tienda cuando ya cargó la sesión y no es admin
+  // Redirigir a tienda cuando ya cargó la sesión y no es admin (no redirigir si perfil aún no cargó)
   useEffect(() => {
-    if (!authLoading && !isAdmin) {
+    if (authLoading) return
+    if (!user) {
+      navigate('/', { replace: true })
+      return
+    }
+    if (userProfile !== null && !isAdmin) {
       navigate('/', { replace: true })
     }
-  }, [authLoading, isAdmin, navigate])
+  }, [authLoading, user, userProfile, isAdmin, navigate])
 
-  // Mientras carga la sesión, mostrar loading (evita página en blanco al volver)
+  // Mientras carga la sesión inicial
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-gray-600 font-medium">Cargando panel...</p>
+          <div className="inline-block w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-gray-600 text-sm">Cargando panel...</p>
         </div>
       </div>
     )
   }
 
-  // Si no es admin, mostrar mensaje mientras se redirige
+  // Sin sesión
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-600">Redirigiendo...</p>
+      </div>
+    )
+  }
+
+  // Sesión ok pero perfil aún cargando (evitar redirigir a admin por carga lenta)
+  if (userProfile === null) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block w-10 h-10 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-3" />
+          <p className="text-gray-600 text-sm">Verificando permisos...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Perfil cargado y no es admin
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -58,6 +85,7 @@ export default function AdminLayout({ children }) {
             </div>
             
             <div className="flex items-center gap-4">
+              <NotificationBell isAdmin={true} variant="dark" />
               <Link
                 to="/"
                 className="text-gray-300 hover:text-white transition-colors text-sm"

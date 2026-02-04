@@ -20,6 +20,15 @@ export default function Boleta() {
     loadOrder()
   }, [orderId, isAuthenticated])
 
+  // Refrescar estado del pago al volver a la pestaña (para ver "Pago confirmado" sin recargar a mano)
+  useEffect(() => {
+    const onFocus = () => {
+      if (orderId && isAuthenticated) loadOrder()
+    }
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [orderId, isAuthenticated])
+
   const loadOrder = async () => {
     setLoading(true)
     const { data, error } = await getOrderById(orderId)
@@ -53,9 +62,32 @@ export default function Boleta() {
     )
   }
 
+  const paymentStatusLabel =
+    order.payment_status === 'completed'
+      ? 'Pago confirmado'
+      : order.payment_status === 'pending_verification'
+        ? 'Pago pendiente de verificación'
+        : 'Pendiente'
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
+      {/* Volver e imprimir (no se imprimen) */}
+      <div className="flex justify-between items-center mb-4 print:hidden">
+        <button
+          onClick={() => navigate('/')}
+          className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+        >
+          ← Volver al inicio
+        </button>
+        <button
+          onClick={() => window.print()}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          Imprimir Boleta
+        </button>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto print:shadow-none">
         {/* Encabezado de la boleta */}
         <div className="border-b-2 border-gray-300 pb-6 mb-6">
           <div className="flex justify-between items-start">
@@ -143,8 +175,8 @@ export default function Boleta() {
           </div>
         </div>
 
-        {/* Totales */}
-        <div className="border-t-2 border-gray-300 pt-4">
+        {/* Totales y estado del pago (una sola vez) */}
+        <div className="border-t-2 border-gray-300 pt-4 mt-6">
           <div className="flex justify-end">
             <div className="w-64 space-y-2">
               <div className="flex justify-between text-gray-700">
@@ -159,40 +191,26 @@ export default function Boleta() {
                 <span>Total:</span>
                 <span className="text-blue-600">${order.total.toLocaleString()}</span>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Estado del pedido */}
-        <div className="mt-6 pt-6 border-t border-gray-300">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-600">Estado del pago:</p>
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                order.payment_status === 'completed' 
-                  ? 'bg-green-100 text-green-700' 
-                  : order.payment_status === 'pending_verification'
-                    ? 'bg-amber-100 text-amber-700'
-                    : 'bg-yellow-100 text-yellow-700'
-              }`}>
-                {order.payment_status === 'completed' 
-                  ? 'Pagado' 
-                  : order.payment_status === 'pending_verification'
-                    ? 'Pago pendiente de verificación'
-                    : 'Pendiente'}
-              </span>
-              {order.payment_status === 'pending_verification' && (
-                <p className="text-sm text-gray-500 mt-1">
-                  Enviaste el comprobante Yape. El administrador verificará el pago y tu pedido quedará confirmado.
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-sm text-gray-600">Estado del pago:</span>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  order.payment_status === 'completed'
+                    ? 'bg-green-100 text-green-700'
+                    : order.payment_status === 'pending_verification'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                }`}>
+                  {paymentStatusLabel}
+                </span>
+              </div>
+              {(order.payment_status === 'completed' || order.payment_status === 'pending_verification') && (
+                <p className="text-xs text-gray-500 pt-0.5 text-right">
+                  {order.payment_status === 'completed'
+                    ? 'Tu pago fue verificado por el administrador.'
+                    : 'Enviaste el comprobante Yape. El administrador verificará el pago.'}
                 </p>
               )}
             </div>
-            <button
-              onClick={() => window.print()}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Imprimir Boleta
-            </button>
           </div>
         </div>
       </div>

@@ -38,27 +38,43 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
+    let cancelled = false
+    const TIMEOUT_MS = 4000
+
+    // Tiempo máximo: si no carga en 4s, dejar de bloquear (evitar pantalla colgada)
+    const timeoutId = setTimeout(() => {
+      if (cancelled) return
+      setLoading(false)
+    }, TIMEOUT_MS)
+
     // Verificar sesión actual
     supabase.auth.getSession()
       .then(async ({ data: { session } }) => {
+        if (cancelled) return
         setUser(session?.user ?? null)
         if (session?.user) {
-          await loadUserProfile(session.user.id)
+          try {
+            await loadUserProfile(session.user.id)
+          } catch (e) {
+            if (!cancelled) setUserProfile({ role: 'user' })
+          }
         }
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       })
       .catch((error) => {
         console.error('Error al obtener sesión:', error)
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       })
+      .finally(() => clearTimeout(timeoutId))
 
     // Escuchar cambios de autenticación
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (cancelled) return
       setUser(session?.user ?? null)
       if (session?.user) {
-        await loadUserProfile(session.user.id)
+        loadUserProfile(session.user.id).catch(() => setUserProfile({ role: 'user' }))
       } else {
         setUserProfile(null)
       }
@@ -66,11 +82,20 @@ export function AuthProvider({ children }) {
     })
 
     return () => {
+      cancelled = true
+      clearTimeout(timeoutId)
       if (subscription) {
         subscription.unsubscribe()
       }
     }
   }, [])
+
+  // Reintentar cargar perfil si el usuario está logueado pero el perfil no cargó (evita que no salga Admin)
+  useEffect(() => {
+    if (!user || userProfile !== null || !loading) return
+    const timer = setTimeout(() => loadUserProfile(user.id), 500)
+    return () => clearTimeout(timer)
+  }, [user?.id, userProfile, loading])
 
   const login = async (email, password) => {
     try {

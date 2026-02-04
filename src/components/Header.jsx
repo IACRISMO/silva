@@ -1,40 +1,13 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
+import NotificationBell from './NotificationBell'
+import UserMenu from './UserMenu'
 
 export default function Header() {
-  const { user, userProfile, logout, isAuthenticated, isAdmin } = useAuth()
-  const { getItemCount, clearCart } = useCart()
-  const navigate = useNavigate()
+  const { isAuthenticated, isAdmin } = useAuth()
+  const { getItemCount } = useCart()
   const itemCount = getItemCount()
-
-  const handleLogout = async (e) => {
-    if (e) {
-      e.preventDefault()
-      e.stopPropagation()
-    }
-    
-    console.log('Click en Salir - Iniciando logout...')
-    
-    // Limpiar el carrito primero
-    clearCart()
-    
-    // Cerrar sesión (no esperar, hacerlo de forma síncrona)
-    logout().then(() => {
-      console.log('Logout completado, recargando página...')
-      // Recargar la página directamente
-      window.location.href = '/'
-    }).catch((error) => {
-      console.error('Error al cerrar sesión:', error)
-      // Forzar recarga incluso si hay error
-      window.location.href = '/'
-    })
-    
-    // También forzar recarga después de un pequeño delay por si acaso
-    setTimeout(() => {
-      window.location.href = '/'
-    }, 500)
-  }
 
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
@@ -43,8 +16,7 @@ export default function Header() {
           <Link to="/" className="text-2xl font-bold text-blue-600">
             🏍️ JASICA
           </Link>
-          {/* Tienda JASICA - Cascos de motos */}
-          
+
           <div className="flex items-center gap-4">
             <Link
               to="/productos"
@@ -52,7 +24,7 @@ export default function Header() {
             >
               Productos
             </Link>
-            
+
             <Link
               to="/carrito"
               className="relative text-gray-700 hover:text-blue-600 transition-colors"
@@ -66,24 +38,9 @@ export default function Header() {
             </Link>
 
             {isAuthenticated ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
-                  Hola, {user.user_metadata?.name || user.email?.split('@')[0] || 'Usuario'}
-                </span>
-                {isAdmin && (
-                  <Link
-                    to="/admin"
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-semibold flex items-center gap-2"
-                  >
-                    ⚙️ Panel Admin
-                  </Link>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
-                >
-                  Salir
-                </button>
+              <div className="flex items-center gap-2">
+                <NotificationBell isAdmin={isAdmin} variant="light" />
+                <UserMenu />
               </div>
             ) : (
               <Link
@@ -99,4 +56,3 @@ export default function Header() {
     </header>
   )
 }
-
