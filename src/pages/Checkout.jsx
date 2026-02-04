@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { createOrder } from '../services/ordersService'
+import { supabase } from '../lib/supabase'
 
 export default function Checkout() {
   const { cart, getTotal, clearCart } = useCart()
@@ -15,12 +16,10 @@ export default function Checkout() {
     ruc: '',
     address: '',
     city: '',
-    zipCode: '',
-    cardNumber: '',
-    cardName: '',
-    expiryDate: '',
-    cvv: ''
+    zipCode: ''
   })
+  const [paymentProofFile, setPaymentProofFile] = useState(null)
+  const [paymentProofPreview, setPaymentProofPreview] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState('')
 
@@ -37,12 +36,46 @@ export default function Checkout() {
     })
   }
 
+  const handleProofFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setError('Por favor sube una imagen (captura de pantalla del comprobante Yape).')
+        return
+      }
+      setPaymentProofFile(file)
+      setPaymentProofPreview(URL.createObjectURL(file))
+      setError('')
+    } else {
+      setPaymentProofFile(null)
+      if (paymentProofPreview) URL.revokeObjectURL(paymentProofPreview)
+      setPaymentProofPreview(null)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!paymentProofFile) {
+      setError('Debes subir la captura del comprobante de pago Yape.')
+      return
+    }
     setIsProcessing(true)
     setError('')
 
     try {
+      // Subir captura a Supabase Storage
+      const fileExt = paymentProofFile.name.split('.').pop()
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`
+      const { error: uploadError } = await supabase.storage
+        .from('payment-proofs')
+        .upload(fileName, paymentProofFile, { upsert: false })
+
+      if (uploadError) throw new Error('No se pudo subir la imagen. Verifica que el bucket "payment-proofs" exista en Supabase.')
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('payment-proofs')
+        .getPublicUrl(fileName)
+
       const orderData = {
         items: cart.map(item => ({
           product_id: item.id,
@@ -62,12 +95,8 @@ export default function Checkout() {
           city: formData.city,
           zipCode: formData.zipCode
         },
-        paymentMethod: {
-          cardNumber: formData.cardNumber,
-          cardName: formData.cardName,
-          expiryDate: formData.expiryDate,
-          cvv: formData.cvv
-        }
+        paymentMethod: { type: 'yape' },
+        paymentProofUrl: publicUrl
       }
 
       const { data, error: orderError } = await createOrder(orderData)
@@ -79,7 +108,7 @@ export default function Checkout() {
       clearCart()
       navigate(`/boleta/${data.id}`)
     } catch (err) {
-      setError(err.message || 'Error al procesar el pago')
+      setError(err.message || 'Error al procesar el pedido')
       console.error('Error creating order:', err)
     } finally {
       setIsProcessing(false)
@@ -220,81 +249,45 @@ export default function Checkout() {
               </div>
             </div>
 
-            {/* Información de Pago */}
+            {/* Pago con Yape - Captura del comprobante */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-bold text-gray-800 mb-4">
-                Información de Pago
+                Pago con Yape
               </h2>
+              <p className="text-gray-600 mb-4">
+                Realiza el pago por Yape por el monto total del pedido. Luego sube aquí la <strong>captura de pantalla del comprobante</strong> (la imagen que te muestra Yape después de pagar). El administrador verificará el pago y tu pedido quedará confirmado.
+              </p>
               <div className="space-y-4">
                 <div>
                   <label className="block text-gray-700 font-medium mb-2">
-                    Número de Tarjeta
+                    Captura del comprobante Yape (obligatorio)
                   </label>
                   <input
-                    type="text"
-                    name="cardNumber"
-                    value={formData.cardNumber}
-                    onChange={handleChange}
-                    placeholder="1234 5678 9012 3456"
-                    required
-                    maxLength="19"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProofFileChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700"
                   />
-                </div>
-                <div>
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Nombre en la Tarjeta
-                  </label>
-                  <input
-                    type="text"
-                    name="cardName"
-                    value={formData.cardName}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Fecha de Vencimiento
-                    </label>
-                    <input
-                      type="text"
-                      name="expiryDate"
-                      value={formData.expiryDate}
-                      onChange={handleChange}
-                      placeholder="MM/AA"
-                      required
-                      maxLength="5"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      CVV
-                    </label>
-                    <input
-                      type="text"
-                      name="cvv"
-                      value={formData.cvv}
-                      onChange={handleChange}
-                      placeholder="123"
-                      required
-                      maxLength="3"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
+                  {paymentProofPreview && (
+                    <div className="mt-3">
+                      <p className="text-sm text-gray-600 mb-1">Vista previa:</p>
+                      <img
+                        src={paymentProofPreview}
+                        alt="Comprobante Yape"
+                        className="max-h-48 rounded-lg border border-gray-200 object-contain"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={isProcessing}
+              disabled={isProcessing || !paymentProofFile}
               className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isProcessing ? 'Procesando...' : 'Confirmar Pago'}
+              {isProcessing ? 'Enviando pedido...' : 'Enviar pedido (pago a verificar)'}
             </button>
           </form>
         </div>

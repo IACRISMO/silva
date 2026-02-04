@@ -9,7 +9,10 @@ export async function createOrder(orderData) {
       throw new Error('Usuario no autenticado')
     }
 
-    // Crear la orden
+    // Pago con Yape: pendiente de verificación hasta que el admin confirme
+    const isYapePayment = orderData.paymentMethod?.type === 'yape'
+    const paymentStatus = isYapePayment ? 'pending_verification' : 'pending'
+
     const order = {
       user_id: user.id,
       customer_name: orderData.customerName,
@@ -21,7 +24,8 @@ export async function createOrder(orderData) {
       shipping_cost: 0,
       shipping_address: orderData.shippingAddress,
       payment_method: orderData.paymentMethod,
-      payment_status: 'pending',
+      payment_proof_url: orderData.paymentProofUrl || null,
+      payment_status,
       order_status: 'processing',
       created_at: new Date().toISOString()
     }
@@ -50,17 +54,19 @@ export async function createOrder(orderData) {
 
     if (itemsError) throw itemsError
 
-    // Actualizar estado de pago a completado
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({ 
-        payment_status: 'completed',
-        order_status: 'confirmed',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', orderResult.id)
+    // Solo marcar pago completado si NO es Yape (Yape lo confirma el admin después)
+    if (!isYapePayment) {
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({ 
+          payment_status: 'completed',
+          order_status: 'confirmed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderResult.id)
 
-    if (updateError) throw updateError
+      if (updateError) throw updateError
+    }
 
     // Obtener la orden completa con el número de boleta generado
     const { data: finalOrder, error: fetchError } = await supabase

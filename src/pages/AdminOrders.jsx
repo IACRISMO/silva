@@ -40,6 +40,24 @@ export default function AdminOrders() {
     }
   }
 
+  const confirmPayment = async (orderId) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({
+          payment_status: 'completed',
+          order_status: 'confirmed',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+
+      if (error) throw error
+      loadOrders()
+    } catch (error) {
+      console.error('Error confirmando pago:', error)
+    }
+  }
+
   const getStatusBadge = (status) => {
     const styles = {
       processing: 'bg-yellow-100 text-yellow-700',
@@ -97,6 +115,16 @@ export default function AdminOrders() {
                           minute: '2-digit'
                         })}
                       </p>
+                      {order.payment_status === 'pending_verification' && (
+                        <span className="inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-800">
+                          Pago pendiente de verificación
+                        </span>
+                      )}
+                      {order.payment_status === 'completed' && (
+                        <span className="inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700">
+                          Pagado
+                        </span>
+                      )}
                     </div>
                     {getStatusBadge(order.order_status)}
                   </div>
@@ -110,13 +138,41 @@ export default function AdminOrders() {
                     <div>
                       <p className="text-sm text-gray-600">Dirección de Envío</p>
                       <p className="font-medium">
-                        {order.shipping_address?.street || 'N/A'}
+                        {order.shipping_address?.address || order.shipping_address?.street || 'N/A'}
                       </p>
                       <p className="text-sm text-gray-600">
-                        {order.shipping_address?.city || ''}, {order.shipping_address?.region || ''}
+                        {order.shipping_address?.city || ''} {order.shipping_address?.zipCode || order.shipping_address?.region || ''}
                       </p>
                     </div>
                   </div>
+
+                  {order.payment_proof_url && (
+                    <div className="border-t pt-4 mb-4">
+                      <p className="text-sm text-gray-600 mb-2">Comprobante Yape (captura):</p>
+                      <a
+                        href={order.payment_proof_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block"
+                      >
+                        <img
+                          src={order.payment_proof_url}
+                          alt="Comprobante Yape"
+                          className="max-h-48 rounded-lg border border-gray-200 object-contain hover:opacity-90"
+                        />
+                      </a>
+                      <p className="text-xs text-gray-500 mt-1">Haz clic en la imagen para ver en tamaño completo</p>
+                      {order.payment_status === 'pending_verification' && (
+                        <button
+                          type="button"
+                          onClick={() => confirmPayment(order.id)}
+                          className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
+                        >
+                          Confirmar pago (marcar como pagado)
+                        </button>
+                      )}
+                    </div>
+                  )}
 
                   <div className="border-t pt-4">
                     <p className="text-sm text-gray-600 mb-2">Productos:</p>

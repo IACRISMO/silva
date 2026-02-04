@@ -171,10 +171,21 @@ export default function Boleta() {
               <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                 order.payment_status === 'completed' 
                   ? 'bg-green-100 text-green-700' 
-                  : 'bg-yellow-100 text-yellow-700'
+                  : order.payment_status === 'pending_verification'
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-yellow-100 text-yellow-700'
               }`}>
-                {order.payment_status === 'completed' ? 'Pagado' : 'Pendiente'}
+                {order.payment_status === 'completed' 
+                  ? 'Pagado' 
+                  : order.payment_status === 'pending_verification'
+                    ? 'Pago pendiente de verificación'
+                    : 'Pendiente'}
               </span>
+              {order.payment_status === 'pending_verification' && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Enviaste el comprobante Yape. El administrador verificará el pago y tu pedido quedará confirmado.
+                </p>
+              )}
             </div>
             <button
               onClick={() => window.print()}
