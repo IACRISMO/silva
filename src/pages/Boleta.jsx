@@ -61,7 +61,7 @@ export default function Boleta() {
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                🏍️ Silva Cascos
+                🏍️ JASICA
               </h1>
               <p className="text-gray-600">Tienda de Cascos de Motos</p>
             </div>
